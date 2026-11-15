@@ -12,6 +12,13 @@ pip install torch --index-url https://download.pytorch.org/whl/cpu
 Then `conda install -n echo -c conda-forge --override-channels "libblas=*=*openblas" nomkl` - conda's MKL numpy and pip torch
 load two OpenMP runtimes; this clashes with OpenCV+torch in one process and silently kills multiprocessing workers.
 
+**Report:** [docs/REPORT.md](docs/REPORT.md) · **Figures:** `results/figures/` · **Demos:** `results/videos/`
+
+![failed grasp recovery](results/videos/02_failed_grasp_recovery.gif)
+
+*A failed grasp is detected from the prediction error (22 cm) and the system re-plans and completes the task.*
+Other demos: `01_language_task`, `03_knocked_cube_recovery` (GIF and MP4).
+
 ## Layout
 | Path | Purpose |
 |---|---|
