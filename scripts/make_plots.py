@@ -97,3 +97,34 @@ h, l = axes[0].get_legend_handles_labels()
 fig.legend(h, l, loc="lower center", ncol=5, fontsize=9, bbox_to_anchor=(0.5, 0.0))
 fig.tight_layout(rect=(0, 0.09, 1, 1)); fig.savefig(OUT / "fig3_success.png", dpi=160); plt.close(fig)
 print("wrote", sorted(p.name for p in OUT.glob("*.png")))
+
+# ---- Fig 4: push tasks (prediction-guided command selection) ---------------------------------
+prow = json.load(open("results/push_results.json")); pby = collections.defaultdict(list); push_by = collections.defaultdict(list)
+for r in prow:
+    pby[r["mode"]].append(r["success"]); push_by[r["mode"]].append(r["pushes"])
+PC = {"rule": "#2a78d6", "adaptive": "#eda100", "curve": "#1baf7a", "wm": "#e87ba4"}
+PL = {"rule": "Rule: assumes it moves as commanded", "adaptive": "Adaptive: re-estimates gain per push",
+      "curve": "Per-object response curve (no world model)", "wm": "World model (ECHO)"}
+groups = [("One push (no feedback)", [("rule", "rule_open"), ("curve", "curve_open"), ("wm", "wm_open")]),
+          ("With feedback retries", [("rule", "rule_retry"), ("adaptive", "adaptive_retry"), ("curve", "curve_retry"), ("wm", "wm_retry")])]
+fig, ax = plt.subplots(1, 2, figsize=(12, 4.4), gridspec_kw={"width_ratios": [1.15, 1]})
+w = 0.19
+for gi, (gname, members) in enumerate(groups):
+    for j, (fam, mode) in enumerate(members):
+        x = gi + (j - (len(members) - 1) / 2) * w
+        k, nn = sum(pby[mode]), len(pby[mode]); lo, hi = wilson(k, nn); pr = k / nn
+        ax[0].bar(x, pr * 100, w * 0.88, color=PC[fam], label=PL[fam] if gi == 1 or fam == "curve" and False else None)
+        ax[0].errorbar(x, pr * 100, yerr=[[(pr - lo) * 100], [(hi - pr) * 100]], fmt="none", ecolor=INK2, elinewidth=0.9, capsize=2)
+ax[0].set_xticks([0, 1]); ax[0].set_xticklabels([g[0] for g in groups]); ax[0].set_ylim(0, 105)
+ax[0].set_ylabel("task success (%)  [whiskers: 95% CI]"); ax[0].grid(axis="x", visible=False)
+ax[0].set_title('"Slide the X cube next to the Y cube" (120 held-out tasks)', loc="left", fontsize=10)
+fams = [("rule", "rule_retry"), ("adaptive", "adaptive_retry"), ("curve", "curve_retry"), ("wm", "wm_retry")]
+for j, (fam, mode) in enumerate(fams):
+    m_ = np.mean(push_by[mode]); sd_ = np.std(push_by[mode]) / math.sqrt(len(push_by[mode]))
+    ax[1].bar(j, m_, 0.6, color=PC[fam], label=PL[fam]); ax[1].errorbar(j, m_, yerr=1.96 * sd_, fmt="none", ecolor=INK2, elinewidth=0.9, capsize=3)
+ax[1].set_xticks(range(4)); ax[1].set_xticklabels(["Rule", "Adaptive", "Curve", "World\nmodel"]); ax[1].set_ylabel("mean pushes used (with feedback)")
+ax[1].set_title("Efficiency: pushes needed", loc="left", fontsize=10); ax[1].grid(axis="x", visible=False)
+h, l = ax[1].get_legend_handles_labels()
+fig.legend(h, l, loc="lower center", ncol=4, fontsize=9, bbox_to_anchor=(0.5, 0.0))
+fig.tight_layout(rect=(0, 0.09, 1, 1)); fig.savefig(OUT / "fig4_push.png", dpi=160); plt.close(fig)
+print("wrote fig4_push.png")

@@ -1,0 +1,21 @@
+{
+ "red_cube": {
+  "n": 153,
+  "assume_commanded_cm": 6.7000627517700195,
+  "world_model_cm": 2.8846778869628906
+ },
+ "green_cube": {
+  "n": 150,
+  "assume_commanded_cm": 7.6158127784729,
+  "world_model_cm": 3.631605625152588
+ },
+ "blue_cube": {
+  "n": 147,
+  "assume_commanded_cm": 5.212847709655762,
+  "world_model_cm": 2.536848306655884
+ },
+ "all": {
+  "assume_commanded_cm": 6.519489765167236,
+  "world_model_cm": 3.020029306411743
+ }
+}

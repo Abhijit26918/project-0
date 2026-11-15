@@ -13,6 +13,7 @@ import numpy as np
 import pybullet as p
 import pybullet_data
 
+PUSH_FRICTION = {"red": 1.5, "green": 0.4, "blue": 0.9, "yellow": 0.8}   # per-colour cube friction (slippery mode)
 COLORS = {
     "red": (0.9, 0.1, 0.1, 1),
     "green": (0.1, 0.8, 0.2, 1),
@@ -69,13 +70,17 @@ class ManipulationEnv:
 
     # ------------------------------------------------------------------ setup
     def reset(self, cubes=("red", "green", "blue"), containers=("blue",), obstacles=0,
-              layout: dict | None = None):
-        """Rebuild the scene. `layout` optionally maps object name -> (x, y)."""
+              layout: dict | None = None, slippery: bool = False):
+        """Rebuild the scene. `layout` optionally maps object name -> (x, y).
+        slippery=True gives each cube colour-dependent friction (hidden from the planner) for pushing experiments."""
+        self.slippery = slippery
         p.resetSimulation(physicsClientId=self.cid)
         p.setGravity(0, 0, -9.81)
         p.setTimeStep(1 / 240)
         p.loadURDF("plane.urdf")
         self.table = p.loadURDF("table/table.urdf", basePosition=[0.55, 0, -0.63], baseOrientation=[0, 0, 0, 1])
+        if slippery:
+            p.changeDynamics(self.table, -1, lateralFriction=0.8)
         self.robot = p.loadURDF("franka_panda/panda.urdf", basePosition=[0, 0, 0], useFixedBase=True)
         self.ee_link, self.finger_joints = 11, (9, 10)
         self.arm_joints = list(range(7))
@@ -103,6 +108,8 @@ class ManipulationEnv:
         for c in cubes:
             xy = sample(f"{c}_cube"); placed.append(xy)
             self._add_cube(f"{c}_cube", xy, COLORS[c])
+            if slippery:
+                p.changeDynamics(self.objects[f"{c}_cube"], -1, lateralFriction=PUSH_FRICTION[c])
         for i in range(obstacles):
             name = f"obstacle_{i}"
             xy = sample(name); placed.append(xy)
@@ -234,6 +241,8 @@ class ManipulationEnv:
             self.move_to(action["pos"])
         elif t == "release":
             self._release()
+        elif t == "push":
+            ok = self._push(action["object"], action["direction"], action["distance"])
         else:
             raise ValueError(f"unknown action {t}")
         self._settle(30)
@@ -262,6 +271,21 @@ class ManipulationEnv:
             ee = self.ee_position()
             self._grasp_offset = (new[0] - ee[0], new[1] - ee[1])
         return held
+
+    def _push(self, name, direction, distance) -> bool:
+        """Sweep the closed gripper through the object along `direction` (xy) so it should travel `distance` m.
+        Outcome depends on friction/mass the caller does not know: low-friction cubes slide past the target."""
+        pos = np.array(p.getBasePositionAndOrientation(self.objects[name])[0])[:2]
+        d = np.asarray(direction, dtype=float); d = d / np.linalg.norm(d)
+        start, end = pos - d * 0.08, pos + d * (distance - 0.03)       # contact offset: finger 1 cm + half cube 2 cm
+        z = TABLE_Z + 0.03
+        self._set_gripper(0.0); self._step(60)
+        self.move_to((start[0], start[1], 0.20))
+        self.move_to((start[0], start[1], z))
+        self.move_to((end[0], end[1], z), steps=500, tol=0.005)
+        self.move_to((end[0], end[1], 0.20))
+        self._open_gripper()
+        return True
 
     def _place_xy(self, xy, z_extra=0.0) -> bool:
         if self._held is None:

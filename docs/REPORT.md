@@ -15,10 +15,13 @@ and replans when they disagree.
 2. **The learned world model detects failures well, without privileged signals.** It flags 100% of failed grasps and of bad steps in live runs
    (6-8% false alarms). A rule-based monitor that does not use the world model catches 60-63% of bad steps, and only because it reads the
    simulator's own success flag.
-3. **The world model did *not* improve task success over a simple rule-based recovery baseline.** The full system is statistically
-   indistinguishable from "rules + recovery" in every scenario (paired sign tests, p >= 0.125). The first research question
-   ("does predictive world modelling improve task completion?") is therefore **not supported by this evidence**.
-4. **A camera costs little**, except after a cube is knocked (87% -> 75%).
+3. **In the pick-and-place failure scenarios the world model did *not* improve task success** over a simple rule-based recovery
+   baseline (paired sign tests, p >= 0.125): the failures are visible after the fact, so cheap checks suffice once a monitor exists.
+4. **Where prediction does help: acting under hidden physics.** In push tasks whose outcome depends on unknown object friction,
+   choosing the push command from the world model's *predicted* outcome raised success from 74% to **93%** over the best
+   feedback-only conventional planner (paired 24 vs 1, p < 0.0001) and used fewer pushes (2.4 vs 3.2). A per-object response curve
+   fitted on the same data (no world model) reached only 70%. See Section 6.
+5. **A camera costs little**, except after a cube is knocked (87% -> 75%).
 
 ## 2. System
 
@@ -111,29 +114,82 @@ Camera only (perceived state; perception error 0.43 cm mean, 0.9 cm max, no miss
 | ECHO vs rules + recovery (true state) | 0 / 0 | 0 / 2 (p = 0.50) |
 | ECHO vs rules + recovery (camera) | 0 / 0 | 0 / 4 (p = 0.125) |
 
-## 6. Discussion
+## 6. Where prediction helps: pushing under hidden dynamics
+
+The pick-and-place tasks above gave the world model nothing to *decide*. This experiment adds a decision whose outcome the
+planner cannot compute from geometry.
+
+**Task.** "Slide the X cube next to the Y cube": push the cube along the table (+/-y only) until its centre is 5-12 cm from the
+reference cube (target 8.5 cm, a window of about +/-3.5 cm). The `push` skill takes a commanded distance, but the distance an object
+really travels depends on its hidden friction (red 1.5, green 0.4, blue 0.9; table 0.8), which the planner is not told:
+measured at a 12 cm command, blue travels about 13 cm, red about 7 cm (undershoots) and green about 18 cm (overshoots and slides).
+Overshooting can also knock the reference cube. The parser maps "slide/push" to the push method and "next to" to a ring relation.
+
+**World model.** Same architecture, with a push action encoding. Trained on 4,500 push transitions from 1,500 layouts drawn from the task
+distribution (layout seeds disjoint from evaluation). On held-out pushes its along-push error is **3.0 cm**, against 6.5 cm for
+the assumption "it moves as commanded". A first attempt trained on 3,006 pushes at random table positions was too coarse
+(6.3 cm vs 11.6 cm: the arm tracks position-dependently, and the data was thin) and was replaced by the task-matched dataset.
+
+**Planners** (all choose the push command; "retry" re-checks the goal and re-plans after each push, up to 6 pushes):
+*rule* assumes the object moves as commanded. *adaptive* re-estimates a gain (travelled / commanded) after each push.
+*curve* is a per-object polynomial response curve fitted on the same push data, ignoring all other state (the control for
+"is a world model needed?"). *world model* searches candidate commands and picks the one whose predicted outcome is closest to the
+target while penalising predicted disturbance of other objects.
+
+![push tasks](../results/figures/fig4_push.png)
+
+120 held-out tasks, identical layouts for every planner:
+
+| Planner | Success | 95% CI | First push succeeds | Mean pushes |
+|---|---|---|---|---|
+| Rule, one push | 0.29 | [0.22, 0.38] | 0.29 | 1.00 |
+| Curve, one push | 0.26 | [0.19, 0.34] | 0.26 | 1.00 |
+| World model, one push | 0.38 | [0.30, 0.47] | 0.38 | 1.00 |
+| Rule + retries | 0.74 | [0.66, 0.81] | 0.29 | 3.17 |
+| Adaptive + retries | 0.72 | [0.63, 0.79] | 0.29 | 3.11 |
+| Curve + retries | 0.70 | [0.61, 0.77] | 0.26 | 3.25 |
+| **World model + retries** | **0.93** | [0.87, 0.97] | 0.38 | **2.39** |
+
+Paired on identical tasks (world-model-only wins / other-only wins): vs rule + retries 24 / 1, vs adaptive 27 / 1, vs curve 30 / 2 (all p < 0.0001);
+one-push world model vs rule 18 / 7 (p = 0.043) and vs curve 29 / 14 (p = 0.032). Pushes needed: the world model uses fewer than rule in 52 tasks and
+more in 18 (p = 0.0001).
+
+**Reading it.**
+- Prediction-guided command selection beats every conventional alternative tried, and the gap survives a no-world-model learned control.
+- **The one-shot accuracy is modest** (38% on the first push). Most of the gain comes from better *corrective* commands during retries, not from
+  hitting the window first time.
+- **It does not help where the planner's assumption is already right:** for the blue cube (moves as commanded) the rule planner is better
+  one-shot (0.61 vs 0.50).
+- Hypothesis (not tested): the curve control lags because the real response depends on position (arm tracking) and on collisions with other
+  objects, both of which the full-state model sees and a per-object curve does not.
+
+## 7. Discussion
 
 **What the evidence supports.** Prediction-based failure detection is accurate and needs no privileged signal; replanning turns detections into recovered tasks.
 **What it does not support.** A task-success advantage for the world model over simpler monitors. In the knocked-cube scenario the point estimate
 favours the rule-based variant (87% vs 90% true state, 75% vs 82% camera), and the false alarms of the world-model detector plausibly explain that
 (each wastes a replan), though the differences are within noise at n=60.
 
-Why the world model adds little here: the failures are *visible after the fact* in a few state variables (is the cube lifted, did it move), so cheap checks
-suffice once a monitor exists. A world model should matter when it can *prevent* failures by evaluating alternatives before acting. That needs a
-richer action space than this task has, which is why predictive planning (Baseline B) was not built: the planner already rejects collision-prone placements
-geometrically, so a model scoring those same candidates would pick the same ones.
+Why the world model adds little in the pick-and-place scenarios: the failures are *visible after the fact* in a few state variables (is the cube lifted,
+did it move), so cheap checks suffice once a monitor exists, and the planner already rejects collision-prone placements geometrically, so a model scoring
+those candidates would pick the same ones. The push experiment (Section 6) is the case where the model has a real decision to make, and there it
+helps clearly. The two results are consistent: a world model earns its place when it informs a *choice* under dynamics the planner does not know,
+not when it only confirms an outcome.
 
 **Residual failures are physical**: a target region fully blocked by other objects, and re-grasps that close the fingers on a container wall.
 
-## 7. Limitations and threats to validity
+## 8. Limitations and threats to validity
 
 - The rule-based baseline reads simulator-provided success flags and ground-truth goal checks, which a real robot would not have. This flatters it.
 - The 5 cm detection threshold was tuned on layouts 0-23; reported results use layouts 200-259.
 - One scene family (3 cubes + 1 container), one simulator, one failure model (slipped grasp, one knocked object). Obstacles are not part of the world model state.
+- The push result uses one hidden-physics configuration, pushes along +/-y only (x-direction pushes were unreliable with this arm), ground-truth object
+  state, and simple conventional baselines. Stronger conventional controllers (e.g. continuous visual servoing during the push) were not tried.
+- "Next to" now means a 5-12 cm ring; earlier it was an alias for "right of".
 - Perception is classical colour segmentation: it needs distinctly coloured objects and a fixed camera.
 - No physical-robot validation. Camera-only results are simulated RGB, not real images.
 - The experiments are small (n=60 per cell); differences below about 10 points are not resolvable.
 
-## 8. Reproducing
+## 9. Reproducing
 
 See `README.md`. Videos of nominal execution, failed-grasp recovery and knocked-cube recovery are in `results/videos/`.

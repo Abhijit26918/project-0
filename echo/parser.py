@@ -11,7 +11,7 @@ KIND_NORM = {"cube": "cube", "block": "cube", "container": "container", "box": "
 RELS = [  # order matters: longest phrases first
     (r"in front of", "in_front_of"), (r"to the left of|left of|on the left of", "left_of"),
     (r"to the right of|right of|on the right of", "right_of"), (r"behind", "behind"),
-    (r"next to|beside", "right_of"),
+    (r"next to|beside|adjacent to", "next_to"),
 ]
 CONTAINER_WORDS = r"\b(in|into|inside|within)\b"
 PICK_WORDS = r"\b(pick up|pick|grab|take|lift)\b"
@@ -46,7 +46,8 @@ def parse(instruction: str, scene_objects: list[str] | None = None) -> TaskSpec:
         if rel:
             if not refs:
                 raise ParseError(f"relation without a reference object: '{clause}'")
-            goals.append(Goal(len(goals), rel, subject, refs[0]))
+            method = "push" if re.search(r"\b(push|slide|nudge)\b", clause) else "pick_place"
+            goals.append(Goal(len(goals), rel, subject, refs[0], method=method))
         elif re.search(CONTAINER_WORDS, clause) and refs:
             if not refs[0].endswith("container"):
                 raise ParseError(f"'{refs[0]}' is not a container: '{clause}'")

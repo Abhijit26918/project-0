@@ -24,7 +24,7 @@ class RunResult:
         lines = [f"instruction: {self.spec.instruction}", "goals:", str(self.spec), "plan:"]
         lines += [f"  {i}. {s}  -> {'ok' if ok else 'FAILED'}"
                   for i, (s, ok) in enumerate(zip(self.steps, self.step_ok))]
-        lines.append("goal verification: " + ", ".join(f"[{k}]={'✓' if v else '✗'}" for k, v in self.goal_ok.items()))
+        lines.append("goal verification: " + ", ".join(f"[{k}]={'ok' if v else 'FAIL'}" for k, v in self.goal_ok.items()))
         lines.append(f"TASK SUCCESS: {self.success}   (actions executed: {self.n_actions})")
         return "\n".join(lines)
 

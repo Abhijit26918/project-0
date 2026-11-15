@@ -6,7 +6,7 @@ in_front_of = toward the robot (-x), behind = away from the robot (+x).
 from __future__ import annotations
 from dataclasses import dataclass, field
 
-RELATIONS = {"in", "left_of", "right_of", "in_front_of", "behind", "picked"}
+RELATIONS = {"in", "left_of", "right_of", "in_front_of", "behind", "next_to", "picked"}
 
 
 @dataclass
@@ -17,9 +17,11 @@ class Goal:
     subject: str                  # e.g. "red_cube"
     ref: str | None = None        # e.g. "blue_container"
     depends_on: list[int] = field(default_factory=list)
+    method: str = "pick_place"    # "push" when the instruction says push/slide
 
     def __str__(self):
         return f"[{self.id}] {self.kind}({self.subject}{', ' + self.ref if self.ref else ''})" + \
+               (" [push]" if self.method == "push" else "") + \
                (f" after {self.depends_on}" if self.depends_on else "")
 
 

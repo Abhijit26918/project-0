@@ -11,9 +11,9 @@ from .wm_data import STATE_DIM, ACTION_DIM
 
 
 class MLP(nn.Module):
-    def __init__(self, hidden=256, layers=3):
+    def __init__(self, hidden=256, layers=3, action_dim=ACTION_DIM):
         super().__init__()
-        dims = [STATE_DIM + ACTION_DIM] + [hidden] * layers
+        dims = [STATE_DIM + action_dim] + [hidden] * layers
         mods = []
         for i in range(layers):
             mods += [nn.Linear(dims[i], dims[i + 1]), nn.ReLU()]
@@ -25,8 +25,9 @@ class MLP(nn.Module):
 
 
 class WorldModel:
-    def __init__(self, n_models: int = 5, hidden: int = 256, layers: int = 3):
-        self.models = [MLP(hidden, layers) for _ in range(n_models)]
+    def __init__(self, n_models: int = 5, hidden: int = 256, layers: int = 3, action_dim: int = ACTION_DIM):
+        self.action_dim = action_dim
+        self.models = [MLP(hidden, layers, action_dim) for _ in range(n_models)]
         self.x_mu = self.x_sd = self.d_mu = self.d_sd = None
 
     # -- normalisation statistics (fit on training data only)
@@ -72,13 +73,13 @@ class WorldModel:
     def save(self, path):
         torch.save({"states": [m.state_dict() for m in self.models],
                     "norm": (self.x_mu, self.x_sd, self.d_mu, self.d_sd),
-                    "n": len(self.models), "hidden": self.models[0].net[0].out_features,
+                    "n": len(self.models), "action_dim": self.action_dim, "hidden": self.models[0].net[0].out_features,
                     "layers": sum(isinstance(l, nn.Linear) for l in self.models[0].net) - 1}, path)
 
     @classmethod
     def load(cls, path):
         ck = torch.load(path, weights_only=False)
-        wm = cls(ck["n"], ck["hidden"], ck["layers"])
+        wm = cls(ck["n"], ck["hidden"], ck["layers"], ck.get("action_dim", ACTION_DIM))
         for m, sd in zip(wm.models, ck["states"]):
             m.load_state_dict(sd)
         wm.x_mu, wm.x_sd, wm.d_mu, wm.d_sd = ck["norm"]

@@ -7,6 +7,8 @@ OBJECTS = ["red_cube", "green_cube", "blue_cube", "blue_container"]
 ACTION_TYPES = ["pick", "place", "place_in"]
 STATE_DIM = len(OBJECTS) * 4 + 3 + 1          # per object [x,y,z,held] + ee xyz + gripper opening
 ACTION_DIM = len(ACTION_TYPES) + len(OBJECTS) + 2   # type one-hot, object one-hot, target xy
+ACTION_TYPES_V2 = ACTION_TYPES + ["push"]            # v2 adds the push primitive (used by the push world model)
+ACTION_DIM_V2 = len(ACTION_TYPES_V2) + len(OBJECTS) + 2
 
 
 def encode_state(s: EnvState) -> np.ndarray:
@@ -31,4 +33,18 @@ def encode_action(a: dict, s: EnvState) -> np.ndarray:
         c = a["container"]
         v[off + OBJECTS.index(c)] = 1
         v[off + len(OBJECTS):] = s.objects[c].position[:2]
+    return v
+
+
+def encode_action_v2(a: dict, s: EnvState) -> np.ndarray:
+    """Like encode_action but with a push type. push: object one-hot + signed displacement command (dx, dy)."""
+    if a["type"] != "push":
+        v1 = encode_action(a, s)
+        n1 = len(ACTION_TYPES)
+        return np.concatenate([v1[:n1], [0.0], v1[n1:]]).astype(np.float32)
+    v = np.zeros(ACTION_DIM_V2, dtype=np.float32)
+    v[ACTION_TYPES_V2.index("push")] = 1
+    v[len(ACTION_TYPES_V2) + OBJECTS.index(a["object"])] = 1
+    d = np.asarray(a["direction"], dtype=float); d = d / np.linalg.norm(d)
+    v[-2:] = d * a["distance"]
     return v

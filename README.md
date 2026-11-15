@@ -69,12 +69,27 @@ Detector (step level): ECHO recall 1.00, false alarms 0.06; rule-based monitor r
 
 Perception cost is negligible except after a knock (cause not yet traced). Add `--perception` to `eval_phase4.py`.
 
+## Push experiment: where the world model helps
+Tasks like "Slide the green cube next to the red cube" with hidden, object-dependent friction (see `docs/REPORT.md` section 6).
+With feedback retries, choosing the push command from the world model's prediction reaches **93%** success vs **74%** (rule), **72%** (adaptive gain) and
+**70%** (per-object response curve, no world model), using fewer pushes (2.4 vs 3.2). Paired tests p < 0.0001; 120 held-out tasks.
+
+![push tasks](results/figures/fig4_push.png)
+
+```
+python scripts/gen_push_task_data.py 1500 data_push_task.npz 11000 3
+python scripts/train_push_wm.py data_push_task.npz 200
+python scripts/eval_push.py 120 3 push
+```
+
 ## Limitations (read before citing)
-- **Recovery is the effect; the world model is not yet shown to add task success.** ECHO ties the no-world-model
-  variants (paired tests p >= 0.5). Its measured advantage is detection that needs no privileged signal.
+- **In the pick-and-place failure scenarios, recovery is the effect; the world model does not add task success.** ECHO ties the
+  no-world-model variants (paired tests p >= 0.125). Its advantage there is detection that needs no privileged signal.
+  In the push experiment (hidden dynamics) the world model does improve success; see above.
 - The rule-based baseline uses simulator-provided success flags and ground-truth goal checks; a real robot would not have them.
 - Detection threshold (5 cm) was tuned on layouts 0-23; reported results use layouts 200-259.
 - World model covers a fixed scene (3 cubes + 1 container); obstacles are not in its state.
 - Residual failures are physical: blocked target regions and grasps that close on a container wall.
-- Predictive planning (Baseline B) was not built: with this action space it would choose the same placements as Baseline A.
+- Predictive planning (Baseline B) is built for the push task only (one hidden-physics configuration, +/-y pushes, ground-truth state);
+  for pick-and-place it would choose the same placements as Baseline A.
 - Simulated only; single seed family; perception is classical colour segmentation, so it relies on distinctly coloured objects and a fixed camera.

@@ -1,0 +1,25 @@
+840 runs in 388s
+
+mode         success         95% CI  first push ok  mean pushes
+rule_open          0.29 [0.22,0.38]           0.29         1.00
+curve_open         0.26 [0.19,0.34]           0.26         1.00
+wm_open            0.38 [0.30,0.47]           0.38         1.00
+rule_retry         0.74 [0.66,0.81]           0.29         3.17
+adaptive_retry     0.72 [0.63,0.79]           0.29         3.11
+curve_retry        0.70 [0.61,0.77]           0.26         3.25
+wm_retry           0.93 [0.87,0.97]           0.38         2.39
+
+by pushed object (success):
+  red_cube    rule_open=0.06  curve_open=0.24  wm_open=0.12  rule_retry=0.65  adaptive_retry=0.59  curve_retry=0.65  wm_retry=0.85
+  green_cube  rule_open=0.14  curve_open=0.19  wm_open=0.48  rule_retry=0.79  adaptive_retry=0.76  curve_retry=0.69  wm_retry=1.00
+  blue_cube   rule_open=0.61  curve_open=0.34  wm_open=0.50  rule_retry=0.77  adaptive_retry=0.77  curve_retry=0.75  wm_retry=0.93
+
+paired (A-only wins / B-only wins, sign-test p) on identical tasks:
+  success  wm_open vs rule_open: 18 / 7  p=0.0433
+  success  wm_open vs curve_open: 29 / 14  p=0.0315
+  success  wm_retry vs rule_retry: 24 / 1  p=0.0000
+  success  wm_retry vs adaptive_retry: 27 / 1  p=0.0000
+  success  wm_retry vs curve_retry: 30 / 2  p=0.0000
+  pushes needed  wm_retry fewer / more than rule_retry: 52 / 18  p=0.0001
+  pushes needed  wm_retry fewer / more than adaptive_retry: 52 / 17  p=0.0000
+  pushes needed  wm_retry fewer / more than curve_retry: 62 / 21  p=0.0000
