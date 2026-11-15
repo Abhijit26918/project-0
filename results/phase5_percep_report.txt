@@ -1,0 +1,29 @@
+1200 runs in 1737s, detector threshold 5.0 cm
+
+scenario    mode                success  actions  detects
+nominal     open_loop              0.98      2.6     0.00   (n=60)
+nominal     verify_retry           0.98      2.6     0.00   (n=60)
+nominal     no_wm                  0.98      2.6     0.00   (n=60)
+nominal     echo_detect_only       0.97      2.6     0.03   (n=60)
+nominal     echo                   0.98      2.6     0.05   (n=60)
+
+grasp_fail  open_loop              0.10      2.6     0.00   (n=60)
+grasp_fail  verify_retry           0.95      4.6     0.00   (n=60)
+grasp_fail  no_wm                  0.97      3.4     1.00   (n=60)
+grasp_fail  echo_detect_only       0.10      1.4     1.00   (n=60)
+grasp_fail  echo                   0.97      3.4     1.05   (n=60)
+
+displace    open_loop              0.07      2.6     0.00   (n=60)
+displace    verify_retry           0.77      6.1     0.00   (n=60)
+displace    no_wm                  0.82      5.3     1.75   (n=60)
+displace    echo_detect_only       0.07      2.0     1.00   (n=60)
+displace    echo                   0.75      5.1     2.27   (n=60)
+
+obstacles   open_loop              0.88      2.6     0.00   (n=60)
+obstacles   verify_retry           0.90      3.1     0.00   (n=60)
+obstacles   no_wm                  0.90      2.8     0.23   (n=60)
+obstacles   echo_detect_only       0.87      2.5     0.10   (n=60)
+obstacles   echo                   0.90      2.8     0.30   (n=60)
+
+[no_wm] step-level detection: recall on bad steps 0.63 (n=164), false-alarm rate on good steps 0.00 (n=687)
+[echo] step-level detection: recall on bad steps 1.00 (n=168), false-alarm rate on good steps 0.08 (n=667)

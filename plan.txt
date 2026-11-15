@@ -1,0 +1,515 @@
+# PROJECT ECHO
+## Embodied Cognitive Hierarchy for Operations
+
+**Research & Development Project Plan**
+
+**Domain:** Embodied AI · Vision-Language-Action · World Models · Agentic Robotics
+
+**Proposed Technology Stack:** Python, PyTorch, PyBullet, OpenCV, NumPy, Google Colab
+
+---
+
+# 1. Project Overview
+
+Project ECHO aims to develop a software-based embodied intelligence system capable of understanding natural-language instructions, interpreting visual environments, planning physical actions, predicting environmental changes and recovering from execution failures.
+
+The system will operate initially in a simulated robotic manipulation environment containing objects, containers, obstacles and a robotic arm.
+
+Unlike conventional language-model-based agents that primarily generate textual responses, ECHO will connect language understanding with visual perception, action planning, physics-based simulation and feedback-driven decision-making.
+
+The central research focus is to investigate whether predictive world modeling can improve the reliability of language-conditioned robotic task execution under environmental changes and unexpected execution failures.
+
+# 2. Problem Statement
+
+Current language-model-based agents can understand complex instructions and generate action plans. However, translating these instructions into reliable physical-world actions presents several challenges.
+
+Key problems include:
+
+1. **Language-to-Action Grounding:** Converting natural-language instructions into executable robotic actions while preserving object references, spatial relationships and task constraints.
+
+2. **Visual Grounding:** Identifying relevant objects, their positions and relationships within an environment.
+
+3. **Task Planning:** Breaking complex instructions into smaller, ordered and executable subtasks.
+
+4. **Predictive Understanding:** Understanding how the environment will change after executing a particular action.
+
+5. **Execution Uncertainty:** Handling situations where the actual outcome differs from the expected outcome.
+
+6. **Failure Recovery:** Detecting unsuccessful actions, identifying discrepancies and selecting corrective actions.
+
+7. **Generalization:** Executing previously learned skills under different object positions, arrangements and environmental conditions.
+
+ECHO will investigate an integrated architecture addressing these challenges through language-conditioned planning, visual perception, predictive world modeling and autonomous recovery.
+
+# 3. Research Objective
+
+The primary objective is:
+
+**To develop and evaluate a language-conditioned embodied intelligence framework that uses predictive world modeling and execution feedback to improve robotic task reliability and autonomous recovery.**
+
+Specific objectives:
+
+- Develop a simulated robotic manipulation environment.
+- Establish a structured representation of the environment and its objects.
+- Translate natural-language instructions into structured task representations.
+- Implement visual object identification and spatial grounding.
+- Develop reusable robotic skills and hierarchical task planning.
+- Build an action-conditioned predictive world model.
+- Compare predicted environmental states with actual execution outcomes.
+- Implement execution monitoring and autonomous failure recovery.
+- Evaluate performance under environmental disturbances and unseen configurations.
+
+# 4. Proposed System Architecture
+
+ECHO will consist of the following interconnected modules.
+
+## 4.1 Natural Language Understanding
+
+Responsible for interpreting user instructions and converting them into structured task representations.
+
+Example instruction:
+
+"Pick up the red cube, place it inside the blue container, and move the green cube to the left of the red cube."
+
+Expected structured representation:
+
+- Identify red cube.
+- Identify blue container.
+- Pick up red cube.
+- Place red cube inside blue container.
+- Identify green cube.
+- Move green cube to the left of red cube.
+
+The representation should preserve task dependencies, object identities and spatial constraints.
+
+## 4.2 Visual Perception
+
+Responsible for interpreting observations from the simulated environment.
+
+Functionalities:
+
+- Object detection and identification.
+- Object localization.
+- Position and orientation estimation.
+- Scene-state extraction.
+- Spatial relationship identification.
+
+The initial implementation may use simulator-provided object states as ground truth. Visual observations will subsequently be introduced to evaluate perception independently.
+
+## 4.3 Task Planning and Skill Composition
+
+Responsible for converting structured instructions into executable action sequences.
+
+The system will maintain a library of reusable robotic skills, such as:
+
+- Pick object.
+- Move object.
+- Place object.
+- Release gripper.
+- Inspect environment.
+- Verify task completion.
+
+Complex tasks will be decomposed into smaller subtasks, with dependencies and execution conditions.
+
+## 4.4 Predictive World Model
+
+This is the central research component of ECHO.
+
+The world model will learn how environmental states change after particular actions.
+
+The proposed state-transition formulation is:
+
+\[
+\hat{s}_{t+1}=f_\theta(s_t,a_t)
+\]
+
+Where:
+
+- \(s_t\): Current environment state.
+- \(a_t\): Selected action.
+- \(\hat{s}_{t+1}\): Predicted next environment state.
+- \(f_\theta\): Learned transition model.
+
+The model will initially operate on structured state representations, including object positions, orientations and relevant environmental variables.
+
+Potential extensions include visual latent-state representations and uncertainty-aware predictions.
+
+## 4.5 Robot Action Execution
+
+Responsible for translating planned actions into executable commands in the simulation.
+
+Functionalities:
+
+- Robotic arm control.
+- Gripper operation.
+- Object manipulation.
+- Motion execution.
+- Collision and execution monitoring.
+
+The initial implementation will use a simulated robotic arm and physics-based manipulation rather than direct object-position manipulation.
+
+## 4.6 Execution Monitoring and Failure Recovery
+
+This module will compare predicted outcomes with actual observations.
+
+Prediction discrepancy:
+
+\[
+e_t=d(\hat{s}_{t+1},s_{t+1})
+\]
+
+Where \(d\) represents a suitable state-distance function.
+
+The module will:
+
+- Detect unexpected execution outcomes.
+- Identify failed or incomplete actions.
+- Determine whether corrective actions are necessary.
+- Trigger replanning.
+- Execute recovery actions.
+- Verify whether the original task has been completed.
+
+The objective is to move beyond static action sequences toward feedback-driven execution.
+
+# 5. Implementation Plan
+
+## Phase 1: Robotic Simulation Environment
+
+Develop the initial physics-based manipulation environment.
+
+**Tasks:**
+
+- Configure PyBullet in Google Colab.
+- Create a tabletop environment.
+- Introduce coloured cubes, containers and obstacles.
+- Integrate a simulated robotic arm.
+- Establish camera-based observations.
+- Extract object positions and orientations.
+- Define a structured environment-state representation.
+- Create a standardized action interface.
+- Implement physics-based simulation and state logging.
+
+**Expected outcome:**
+
+A functional simulated environment in which objects can be observed, manipulated and tracked through structured state representations.
+
+**Deliverables:**
+
+- Environment initialization module.
+- Scene and object creation module.
+- Simulated robotic arm.
+- Camera rendering module.
+- Environment-state extraction module.
+- Action interface.
+- Initial simulation notebook.
+
+## Phase 2: Language-Conditioned Task Execution
+
+Develop the language-to-action pipeline.
+
+**Tasks:**
+
+- Process natural-language instructions.
+- Extract objects, actions and spatial relationships.
+- Convert instructions into structured task representations.
+- Implement task decomposition.
+- Develop a reusable robotic skill library.
+- Implement hierarchical task planning.
+- Connect task plans with the robotic controller.
+- Verify task execution against the original instruction.
+
+**Expected outcome:**
+
+A system capable of understanding manipulation instructions and executing multi-step tasks in the simulated environment.
+
+**Deliverables:**
+
+- Language instruction parser.
+- Structured task representation.
+- Task decomposition module.
+- Reusable skill library.
+- Hierarchical task planner.
+- Language-conditioned execution pipeline.
+
+## Phase 3: Predictive World Model
+
+Develop a learned model of environmental dynamics.
+
+**Tasks:**
+
+- Generate state-action-next-state training samples through simulation.
+- Design a structured state encoder.
+- Implement an action-conditioned transition model.
+- Train the model using PyTorch.
+- Predict environmental changes following actions.
+- Evaluate predictions against actual simulator outcomes.
+- Investigate prediction performance under different object configurations.
+- Explore uncertainty estimation and multi-step prediction.
+
+**Expected outcome:**
+
+A trained predictive model capable of estimating the next environmental state given the current state and a selected action.
+
+**Deliverables:**
+
+- State-action dataset.
+- World model architecture.
+- Training and evaluation pipeline.
+- Model checkpoints.
+- Prediction visualization.
+- Prediction error analysis.
+- Experimental results.
+
+## Phase 4: Autonomous Failure Detection and Recovery
+
+Integrate predictive modeling with execution monitoring and replanning.
+
+**Tasks:**
+
+- Compare predicted and observed environmental states.
+- Establish discrepancy thresholds or an appropriate learned failure detector.
+- Introduce controlled execution failures.
+- Simulate unexpected object movements and environmental disturbances.
+- Identify unsuccessful actions.
+- Implement corrective action selection.
+- Integrate replanning with the task planner.
+- Verify task completion after recovery.
+
+**Expected outcome:**
+
+An embodied agent capable of identifying unexpected outcomes, modifying its plan and attempting corrective actions.
+
+**Deliverables:**
+
+- Execution monitoring module.
+- Prediction discrepancy evaluator.
+- Failure detection mechanism.
+- Recovery and replanning module.
+- Failure simulation scenarios.
+- Recovery evaluation results.
+
+## Phase 5: Integration and Research Evaluation
+
+Integrate all components into a unified system and conduct controlled experiments.
+
+**Tasks:**
+
+- Integrate language understanding, perception, planning, world modeling and execution.
+- Evaluate multi-step manipulation tasks.
+- Introduce environmental disturbances.
+- Evaluate performance on unseen object arrangements.
+- Compare alternative planning approaches.
+- Conduct ablation studies.
+- Analyze limitations and failure cases.
+- Document reproducible experimental configurations.
+
+**Expected outcome:**
+
+A complete research prototype demonstrating language-conditioned robotic task execution with predictive environmental modeling and autonomous recovery.
+
+**Deliverables:**
+
+- Integrated ECHO system.
+- Reproducible experiment scripts.
+- Evaluation datasets and logs.
+- Performance comparison tables.
+- Ablation study results.
+- Technical research report.
+- Demonstration videos and visualizations.
+
+# 6. Research Questions
+
+The project will investigate the following questions:
+
+1. Does incorporating a predictive world model improve task completion compared with conventional language-conditioned task planning?
+
+2. Can action-conditioned state prediction help identify unsuccessful robotic actions?
+
+3. Does prediction-guided replanning improve recovery success under environmental disturbances?
+
+4. How well does the system generalize to previously unseen object positions and configurations?
+
+5. What is the relationship between prediction accuracy and downstream task execution reliability?
+
+6. Which architectural components contribute most significantly to overall system performance?
+
+# 7. Experimental Design and Evaluation
+
+The evaluation will focus on measurable system performance rather than demonstration quality alone.
+
+## 7.1 Proposed Baselines
+
+**Baseline A: Conventional Task Planning**
+
+Language-conditioned task decomposition and action execution without predictive world modeling.
+
+**Baseline B: Predictive Planning**
+
+Task planning incorporating the learned world model for action outcome prediction.
+
+**Proposed System: ECHO**
+
+Predictive world modeling combined with execution monitoring, failure detection and autonomous recovery.
+
+## 7.2 Evaluation Metrics
+
+| Metric | Purpose |
+|---|---|
+| Task Success Rate | Measures successful completion of instructions |
+| Prediction Error | Measures accuracy of predicted environmental states |
+| Recovery Success Rate | Measures successful recovery from failed actions |
+| Object Position Error | Measures manipulation accuracy |
+| Number of Actions | Measures execution efficiency |
+| Planning Efficiency | Measures unnecessary or redundant planning actions |
+| Generalization Performance | Measures performance on unseen configurations |
+| Execution Time | Measures overall task execution cost |
+
+## 7.3 Experimental Scenarios
+
+- Standard pick-and-place operations.
+- Multi-object manipulation.
+- Different initial object arrangements.
+- Unexpected object displacement.
+- Failed grasp attempts.
+- Obstacle introduction.
+- Multi-step tasks with dependencies.
+- Recovery after unsuccessful actions.
+
+## 7.4 Ablation Studies
+
+Investigate the contribution of individual components by evaluating:
+
+- System without the world model.
+- System without execution monitoring.
+- System without autonomous recovery.
+- System with predictive planning but no feedback-based replanning.
+- Complete ECHO architecture.
+
+All comparisons should use consistent task distributions and evaluation conditions.
+
+# 8. Technology Stack and Resources
+
+| Component | Proposed Technology |
+|---|---|
+| Programming | Python |
+| Simulation | PyBullet |
+| Deep Learning | PyTorch |
+| Numerical Computing | NumPy |
+| Visual Processing | OpenCV |
+| Visualization | Matplotlib |
+| Data Processing | Pandas |
+| Experimentation | Google Colab |
+| Model Development | Jupyter Notebooks |
+| Version Control | Git and GitHub |
+| Documentation | Markdown |
+
+**Resource constraints:**
+
+- Primarily free Google Colab resources.
+- CPU-compatible simulation wherever practical.
+- Lightweight neural architectures.
+- Open-source models and libraries.
+- No dependency on paid APIs or physical robotic hardware.
+
+Pretrained vision-language-action models may be explored as optional extensions, subject to available compute and model requirements.
+
+# 9. Expected Final Outcomes
+
+The completed project is expected to provide:
+
+1. A functional simulated robotic manipulation environment.
+2. A natural-language-conditioned task execution system.
+3. A reusable robotic skill and hierarchical planning framework.
+4. A trained action-conditioned world model.
+5. A mechanism for predicting environmental state transitions.
+6. An execution-monitoring and failure-detection mechanism.
+7. An autonomous recovery and replanning pipeline.
+8. Experimental evidence comparing predictive and non-predictive approaches.
+9. An evaluation of system generalization and limitations.
+10. A reproducible research-oriented software implementation.
+
+The primary research contribution will be an experimental investigation of how predictive environmental modeling can support reliable execution and recovery in language-conditioned robotic systems.
+
+# 10. Final Project Deliverables
+
+The final repository should contain:
+
+**A. Source Code**
+
+- Environment and simulation.
+- Object and scene representation.
+- Perception pipeline.
+- Language understanding.
+- Task planning.
+- Robotic control and skills.
+- World model.
+- Failure detection.
+- Recovery and replanning.
+
+**B. Research Artifacts**
+
+- Dataset generation scripts.
+- Training scripts.
+- Trained model checkpoints.
+- Experiment configurations.
+- Evaluation scripts.
+- Baseline implementations.
+- Ablation studies.
+
+**C. Documentation**
+
+- Project README.
+- System architecture.
+- Module documentation.
+- Model architecture and training methodology.
+- Experimental methodology.
+- Results and analysis.
+- Known limitations and future work.
+
+**D. Demonstration**
+
+- Initial environment demonstration.
+- Language-conditioned task execution.
+- World model prediction visualization.
+- Failed action detection.
+- Autonomous recovery demonstration.
+- Final integrated system demonstration.
+
+# 11. Scope and Limitations
+
+The initial project will focus on simulated tabletop robotic manipulation.
+
+It will not initially attempt to:
+
+- Train a large vision-language-action foundation model from scratch.
+- Develop a physical robotic platform.
+- Achieve unrestricted real-world robotic autonomy.
+- Reproduce the full capabilities of commercial embodied AI platforms.
+
+The project will prioritize a small, measurable and reproducible research contribution.
+
+A learned structured-state world model will be developed first. Visual latent-state world modeling and pretrained VLA integration will be considered extensions after the core system is functional.
+
+All research claims will be based on implemented components and experimentally observed results.
+
+# 12. Project Success Criteria
+
+Project ECHO will be considered successfully implemented when:
+
+- Natural-language instructions can be converted into executable tasks.
+- The simulated robotic system can perform multi-step manipulation.
+- The learned world model can predict environmental state transitions.
+- Prediction discrepancies can be identified during execution.
+- The system can recover from selected simulated execution failures.
+- The complete architecture can be evaluated against appropriate baselines.
+- Experimental results are reproducible and documented.
+
+**Final Objective**
+
+To demonstrate the ability to design, implement and experimentally evaluate an embodied intelligence architecture connecting language understanding, visual perception, predictive world modeling, robotic action execution and autonomous recovery.
+
+---
+
+**PROJECT ECHO**
+
+*From language understanding to predictive, adaptive and reliable robotic action.*

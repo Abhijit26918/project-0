@@ -1,0 +1,30 @@
+SUCCESS RATE (95% Wilson CI) | mean actions | mean detections
+scenario                     open_loop               verify_retry                      no_wm           echo_detect_only                       echo
+nominal     0.98 [0.91,1.00] a=2.6 d=0.0 0.98 [0.91,1.00] a=2.6 d=0.0 0.98 [0.91,1.00] a=2.6 d=0.0 0.95 [0.86,0.98] a=2.6 d=0.1 0.98 [0.91,1.00] a=2.6 d=0.1
+grasp_fail  0.10 [0.05,0.20] a=2.7 d=0.0 0.98 [0.91,1.00] a=4.7 d=0.0 0.98 [0.91,1.00] a=3.5 d=1.0 0.10 [0.05,0.20] a=1.4 d=1.0 0.98 [0.91,1.00] a=3.5 d=1.0
+displace    0.07 [0.03,0.16] a=2.6 d=0.0 0.83 [0.72,0.91] a=5.4 d=0.0 0.90 [0.80,0.95] a=5.1 d=1.5 0.07 [0.03,0.16] a=2.0 d=1.0 0.87 [0.76,0.93] a=4.9 d=1.9
+obstacles   0.92 [0.82,0.96] a=2.6 d=0.0 0.92 [0.82,0.96] a=3.0 d=0.0 0.92 [0.82,0.96] a=2.8 d=0.2 0.88 [0.78,0.94] a=2.5 d=0.1 0.92 [0.82,0.96] a=2.8 d=0.3
+
+PAIRED COMPARISONS on identical layouts + injections (A-only wins / B-only wins, sign-test p)
+  echo   vs open_loop        nominal    :  0 /  0   p=1.000
+  echo   vs open_loop        grasp_fail : 53 /  0   p=0.000
+  echo   vs open_loop        displace   : 48 /  0   p=0.000
+  echo   vs open_loop        obstacles  :  0 /  0   p=1.000
+  echo   vs verify_retry     nominal    :  0 /  0   p=1.000
+  echo   vs verify_retry     grasp_fail :  0 /  0   p=1.000
+  echo   vs verify_retry     displace   :  3 /  1   p=0.625
+  echo   vs verify_retry     obstacles  :  0 /  0   p=1.000
+  echo   vs no_wm            nominal    :  0 /  0   p=1.000
+  echo   vs no_wm            grasp_fail :  0 /  0   p=1.000
+  echo   vs no_wm            displace   :  0 /  2   p=0.500
+  echo   vs no_wm            obstacles  :  0 /  0   p=1.000
+  echo   vs echo_detect_only nominal    :  2 /  0   p=0.500
+  echo   vs echo_detect_only grasp_fail : 53 /  0   p=0.000
+  echo   vs echo_detect_only displace   : 48 /  0   p=0.000
+  echo   vs echo_detect_only obstacles  :  2 /  0   p=0.500
+
+STEP-LEVEL DETECTION (flagged vs truly bad step)
+  no_wm : recall 0.60 (n=151), false-alarm 0.00 (n=686)
+  echo  : recall 1.00 (n=148), false-alarm 0.06 (n=678)
+
+nominal echo failures: 1 of 60
